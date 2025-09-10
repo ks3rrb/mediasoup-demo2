@@ -19,14 +19,14 @@ module.exports =
 	{
 		listenIp   : '0.0.0.0',
 		// NOTE: Don't change listenPort (client app assumes 4443).
-		listenPort : process.env.PROTOO_LISTEN_PORT || 4443,
-		tls: null
+		listenPort : process.env.PROTOO_LISTEN_PORT || 8443,
+		// tls: null
 		// NOTE: Set your own valid certificate files.
-		/*tls        :
+		tls        :
 		{
 			cert : process.env.HTTPS_CERT_FULLCHAIN || `/etc/letsencrypt/live/mzelo.com/fullchain.pem`,
 			key  : process.env.HTTPS_CERT_PRIVKEY || `/etc/letsencrypt/live/mzelo.com/privkey.pem`
-		}*/
+		}
 	},
 	// mediasoup settings.
 	mediasoup :
@@ -109,13 +109,13 @@ module.exports =
 					protocol         : 'udp',
 					ip               : process.env.MEDIASOUP_LISTEN_IP || '0.0.0.0',
 					announcedAddress : process.env.MEDIASOUP_ANNOUNCED_IP || '135.181.113.83' ,
-					port             : 44444
+					port             : 45444
 				},
 				{
 					protocol         : 'tcp',
 					ip               : process.env.MEDIASOUP_LISTEN_IP || '0.0.0.0',
 					announcedAddress : process.env.MEDIASOUP_ANNOUNCED_IP  || '135.181.113.83' ,
-					port             : 44444
+					port             : 45444
 				}
 			]
 		},
@@ -134,7 +134,7 @@ module.exports =
 					announcedAddress : process.env.MEDIASOUP_ANNOUNCED_IP || '135.181.113.83',
 					portRange        :
 					{
-						min : process.env.MEDIASOUP_MIN_PORT || 40000,
+						min : process.env.MEDIASOUP_MIN_PORT || 45000,
 						max : process.env.MEDIASOUP_MAX_PORT || 49999,
 					}
 				},
@@ -144,7 +144,7 @@ module.exports =
 					announcedAddress : process.env.MEDIASOUP_ANNOUNCED_IP || '135.181.113.83',
 					portRange        :
 					{
-						min : process.env.MEDIASOUP_MIN_PORT || 40000,
+						min : process.env.MEDIASOUP_MIN_PORT || 45000,
 						max : process.env.MEDIASOUP_MAX_PORT || 49999,
 					}
 				}
@@ -167,7 +167,7 @@ module.exports =
 				announcedAddress : process.env.MEDIASOUP_ANNOUNCED_IP || '135.181.113.83',
 				portRange        :
 				{
-					min : process.env.MEDIASOUP_MIN_PORT || 40000,
+					min : process.env.MEDIASOUP_MIN_PORT || 45000,
 					max : process.env.MEDIASOUP_MAX_PORT || 49999,
 				}
 			},
