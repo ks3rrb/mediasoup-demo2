@@ -89,11 +89,6 @@ module.exports =
                     mimeType   : 'video/AV1',
                     clockRate  : 90000
                 },
-                {
-				  kind: 'video',
-				  mimeType: 'video/H265',
-				  clockRate: 90000
-				}
 			]
 		},
 		// mediasoup WebRtcServer options for WebRTC endpoints (mediasoup-client,
