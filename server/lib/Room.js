@@ -44,8 +44,8 @@ class Room extends EventEmitter
 		// Create a mediasoup AudioLevelObserver.
 		const audioLevelObserver = await mediasoupRouter.createAudioLevelObserver(
 			{
-				maxEntries : 1,
-				threshold  : -80,
+				maxEntries : 10,
+				threshold  : -127,
 				interval   : 800
 			});
 
@@ -235,6 +235,8 @@ class Room extends EventEmitter
 		peer.data.consume = consume;
 		peer.data.joined = false;
 		peer.data.displayName = undefined;
+		peer.data.image = undefined;
+		peer.data.nickname = undefined;
 		peer.data.device = undefined;
 		peer.data.rtpCapabilities = undefined;
 		peer.data.sctpCapabilities = undefined;
@@ -274,8 +276,7 @@ class Room extends EventEmitter
 			{
 				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
 				{
-					otherPeer.notify('peerClosed', { peerId: peer.id })
-						.catch(() => {});
+					otherPeer.notify('peerClosed', { peerId: peer.id, displayName: peer.data.displayName, image: peer.data?.image, nickname: peer.data?.nickname }).catch(() => {});
 				}
 			}
 
@@ -840,7 +841,7 @@ class Room extends EventEmitter
 
 	_handleAudioLevelObserver()
 	{
-		this._audioLevelObserver.on('volumes', (volumes) =>
+		/*this._audioLevelObserver.on('volumes', (volumes) =>
 		{
 			const { producer, volume } = volumes[0];
 
@@ -859,6 +860,31 @@ class Room extends EventEmitter
 					})
 					.catch(() => {});
 			}
+		});*/
+
+		this._audioLevelObserver.on('volumes', (volumes) => {
+
+		    const volumesToSend = volumes.map(({ producer, volume }) => ({
+		
+		        peerId: producer.appData.peerId,
+		
+		        volume: volume,
+		
+		        displayName: producer.appData.displayName // Include displayName property
+		
+			}));
+			for (const peer of this._getJoinedPeers()) {
+
+			        peer.notify(
+			
+			            'activeSpeaker',
+			
+			            volumesToSend)
+			
+			            .catch(() => {});
+
+   			 }
+
 		});
 
 		this._audioLevelObserver.on('silence', () =>
@@ -900,6 +926,12 @@ class Room extends EventEmitter
 				break;
 			}
 
+			case 'ping':
+			{
+				accept(); // simply reply OK
+				break;
+			}
+
 			case 'join':
 			{
 				// Ensure the Peer is not already joined.
@@ -910,12 +942,14 @@ class Room extends EventEmitter
 					displayName,
 					device,
 					rtpCapabilities,
-					sctpCapabilities
+					sctpCapabilities, image,nickname
 				} = request.data;
 
 				// Store client data into the protoo Peer data object.
 				peer.data.joined = true;
 				peer.data.displayName = displayName;
+				peer.data.image = image;
+				peer.data.nickname = nickname;
 				peer.data.device = device;
 				peer.data.rtpCapabilities = rtpCapabilities;
 				peer.data.sctpCapabilities = sctpCapabilities;
@@ -935,6 +969,8 @@ class Room extends EventEmitter
 					.map((joinedPeer) => ({
 						id          : joinedPeer.id,
 						displayName : joinedPeer.data.displayName,
+						image       : joinedPeer.data?.image,
+						nickname    : joinedPeer.data?.nickname,
 						device      : joinedPeer.data.device
 					}));
 
@@ -987,6 +1023,8 @@ class Room extends EventEmitter
 						{
 							id          : peer.id,
 							displayName : peer.data.displayName,
+							image       : peer.data?.image,
+							nickname    : peer.data?.nickname,
 							device      : peer.data.device
 						})
 						.catch(() => {});
@@ -1146,7 +1184,7 @@ class Room extends EventEmitter
 
 				// Add peerId into appData to later get the associated Peer during
 				// the 'loudest' event of the audioLevelObserver.
-				appData = { ...appData, peerId: peer.id };
+				appData = { ...appData, peerId: peer.id  , displayName: peer.data.displayName  };
 
 				const producer = await transport.produce(
 					{
@@ -1274,7 +1312,7 @@ class Room extends EventEmitter
 				// }
 
 				// Add into the AudioLevelObserver and ActiveSpeakerObserver.
-				if (producer.kind === 'audio')
+				if (producer.kind === 'audio'  &&!(appData?.local==true||appData?.share==true) )
 				{
 					this._audioLevelObserver.addProducer({ producerId: producer.id })
 						.catch(() => {});
