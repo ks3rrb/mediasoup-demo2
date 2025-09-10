@@ -544,18 +544,42 @@ async function runProtooWebSocketServer()
 		});
 
 	// Handle connections from clients.
-	protooWebSocketServer.on('connectionrequest', (info, accept, reject) =>
+	protooWebSocketServer.on('connectionrequest', async(info, accept, reject) =>
 	{
 		// The client indicates the roomId and peerId in the URL query.
 		const u = url.parse(info.request.url, true);
 		const roomId = u.query['roomId'];
 		const peerId = u.query['peerId'];
+		const key    = u.query['key'];  
 
-		if (!roomId || !peerId)
+		if (!roomId || !peerId || !key)
 		{
-			reject(400, 'Connection request without roomId and/or peerId');
+			reject(400, 'Connection request without roomId and/or peerId and/or key');
 
 			return;
+		}
+
+		if(true)
+		{
+			if(key!=="FFDFSDAFf45235425fcaoid2435") {
+					  try {
+			    const url = `https://mzelo.com/api/check_room/_secret_48292edbgfgsf425762535324348bd9f8c939/${roomId}`;
+			
+			    const resp = await fetch(url);
+			    if (!resp.ok) {
+			      logger.error('Room-key API returned HTTP', resp.status);
+			      return reject(500, 'Room key validation service error');
+			    }
+			
+			    const data = await resp.json();
+			    if (!data.key || data.key!==key) {
+			      return reject(403, 'Invalid room key');
+			    }
+			  } catch (err) {
+			    logger.error('Error validating room key:', err);
+			    return reject(500, 'Room key validation failed');
+			  }
+			}
 		}
 
 		let consumerReplicas = Number(u.query['consumerReplicas']);
